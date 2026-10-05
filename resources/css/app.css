@@ -1,0 +1,275 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source not '../views/welcome.blade.php'; /* unused Laravel starter page */
+
+/* `light:` variant, e.g. light:opacity-0 — applies when <html data-theme="light">. */
+@custom-variant light (&:where([data-theme=light], [data-theme=light] *));
+
+/*
+ * Brand palette — the single source of truth for color. Only these five hues (plus their
+ * tints/shades) are allowed. The 3D scene reads these raw values (resources/js/core/config.js).
+ */
+:root {
+    --brand-primary: #3daa3a;
+    --brand-secondary: #006633;
+    --brand-accent: #b8e986;
+    --brand-background: #06140d;
+    --brand-text: #f2f7f0;
+}
+
+/*
+ * Theme roles used by the UI (bg-background, text-accent, ...). Dark is the default theme;
+ * light mode re-maps the same brand colors below, so no markup changes per theme.
+ */
+@theme {
+    --color-primary: #3daa3a;
+    --color-secondary: #006633;
+    --color-accent: #b8e986;
+    --color-background: #06140d;
+    --color-text: #f2f7f0;
+
+    --font-sans: 'Montserrat', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-display: 'Montserrat', ui-sans-serif, system-ui, sans-serif;
+
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@layer base {
+    html {
+        background-color: var(--color-background);
+        color: var(--color-text);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Lenis recommended base styles */
+    html.lenis,
+    html.lenis body {
+        height: auto;
+    }
+
+    .lenis:not(.lenis-autoToggle).lenis-stopped {
+        overflow: clip;
+    }
+
+    .lenis [data-lenis-prevent] {
+        overscroll-behavior: contain;
+    }
+
+    :root {
+        color-scheme: dark;
+    }
+
+    /*
+     * Light theme: same palette, roles swapped. Small green text uses #237023, a darker shade
+     * of the brand primary, so it passes WCAG AA (5.7:1) on the light background.
+     */
+    :root[data-theme='light'] {
+        color-scheme: light;
+        --color-primary: var(--brand-secondary);
+        --color-secondary: var(--brand-accent);
+        --color-accent: #237023;
+        --color-background: var(--brand-text);
+        --color-text: var(--brand-background);
+    }
+
+    ::selection {
+        background-color: var(--color-primary);
+        color: var(--color-background);
+    }
+
+    :focus-visible {
+        outline: 2px solid var(--color-accent);
+        outline-offset: 3px;
+    }
+}
+
+/* Page container: centered, max 80rem, responsive side gutters. */
+@utility shell {
+    width: 100%;
+    max-width: 80rem;
+    margin-inline: auto;
+    padding-inline: 1.25rem;
+
+    @media (width >= 48rem) {
+        padding-inline: 2rem;
+    }
+}
+
+/* Large section heading. */
+@utility heading-section {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(2.25rem, 5.2vw, 4.75rem);
+    line-height: 0.98;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+}
+
+/* Lead paragraph under headings. */
+@utility lead {
+    font-size: clamp(1.0625rem, 1.4vw, 1.25rem);
+    line-height: 1.6;
+    color: color-mix(in oklab, var(--color-text) 72%, transparent);
+    text-wrap: pretty;
+}
+
+/* Outline display text used for decorative parallax layers. */
+@utility text-outline {
+    color: transparent;
+    -webkit-text-stroke: 1px color-mix(in oklab, var(--color-text) 14%, transparent);
+}
+
+/*
+ * Preloader draw-in (resources/views/components/preloader.blade.php): runs before the JS bundle loads.
+ * Each stroke draws along its path (pathLength="1"), then the two heads pop in; --delay staggers them.
+ */
+/* Round caps would still paint a dot on an undrawn (zero-length) dash, so strokes stay hidden until they start. */
+.preloader-stroke {
+    stroke-dasharray: 1 2;
+    stroke-dashoffset: 1;
+    opacity: 0;
+    animation: preloader-draw 0.9s cubic-bezier(0.65, 0, 0.35, 1) var(--delay, 0s) both;
+}
+
+.preloader-head {
+    transform: scale(0);
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: preloader-pop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) var(--delay, 0s) forwards;
+}
+
+.preloader-line {
+    opacity: 0;
+    animation: preloader-fade 0.6s ease-out 1.2s forwards;
+}
+
+@keyframes preloader-draw {
+    0% {
+        stroke-dashoffset: 1;
+        opacity: 0;
+    }
+    1% {
+        opacity: 1;
+    }
+    100% {
+        stroke-dashoffset: 0;
+        opacity: 1;
+    }
+}
+
+@keyframes preloader-pop {
+    to {
+        transform: scale(1);
+    }
+}
+
+@keyframes preloader-fade {
+    to {
+        opacity: 1;
+    }
+}
+
+/* Hero "scroll" indicator line. */
+@keyframes scroll-hint {
+    0% {
+        transform: translateY(-100%);
+    }
+    100% {
+        transform: translateY(200%);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Services panels share one grid cell while the section is pinned (set by services.js). */
+.is-stacked {
+    display: grid;
+}
+
+.is-stacked > * {
+    grid-area: 1 / 1;
+}
+
+/* SplitText line masks: keep descenders visible inside the overflow mask. */
+.split-line {
+    padding-bottom: 0.08em;
+    margin-bottom: -0.08em;
+}
+
+/*
+ * Film grain + vignette layered between the WebGL canvas and the content.
+ * The grain is noise tinted with the brand text color (see the feColorMatrix), so no new hue is added.
+ */
+.page-vignette {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: radial-gradient(ellipse at 50% 45%, transparent 50%, color-mix(in oklab, var(--color-background) 80%, transparent) 100%);
+}
+
+.page-grain {
+    position: fixed;
+    inset: -100px;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0.06;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.95 0 0 0 0 0.97 0 0 0 0 0.94 0 0 0 1.4 -0.35'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    animation: grain 0.9s steps(5) infinite;
+}
+
+/* Smooth light/dark switch; only active for half a second while toggling (theme.js). */
+.theme-switching,
+.theme-switching * {
+    transition-property: background-color, border-color, color, fill, stroke !important;
+    transition-duration: 0.45s !important;
+    transition-timing-function: ease-out !important;
+}
+
+/* Light theme: the same grain tinted with the brand's near-black instead. */
+[data-theme='light'] .page-grain {
+    opacity: 0.05;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.02 0 0 0 0 0.08 0 0 0 0 0.05 0 0 0 1.4 -0.35'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Low-power devices keep a static grain. */
+[data-tier='low'] .page-grain {
+    animation: none;
+}
+
+@keyframes grain {
+    0% { transform: translate(0, 0); }
+    20% { transform: translate(-40px, 25px); }
+    40% { transform: translate(30px, -50px); }
+    60% { transform: translate(-25px, -15px); }
+    80% { transform: translate(45px, 35px); }
+    100% { transform: translate(0, 0); }
+}
+
+/* Hide the native pointer only while the custom cursor is active (desktop, motion allowed). */
+.has-custom-cursor,
+.has-custom-cursor * {
+    cursor: none !important;
+}
+
+/* The persistent WebGL canvas sits behind all content. */
+#webgl {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+}
